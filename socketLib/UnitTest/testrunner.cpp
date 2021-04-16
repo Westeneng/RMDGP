@@ -36,6 +36,8 @@
 #include <cppunit/Test.h>
 #include <cppunit/TestFailure.h>
 #include <cppunit/portability/Stream.h>
+#include <iomanip>      // std::setw
+
 
 class ProgressListener : public CPPUNIT_NS::TestListener
 {
@@ -52,8 +54,7 @@ public:
 
    void startTest(CPPUNIT_NS::Test *test)
    {
-      CPPUNIT_NS::stdCOut() << test->getName();
-      CPPUNIT_NS::stdCOut() << "\n";
+      CPPUNIT_NS::stdCOut() << std::setiosflags(std::ios::left) << std::setw(60) << test->getName();
       CPPUNIT_NS::stdCOut().flush();
 
       m_lastTestFailed = false;
