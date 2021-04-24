@@ -36,8 +36,7 @@
 #include <cppunit/Test.h>
 #include <cppunit/TestFailure.h>
 #include <cppunit/portability/Stream.h>
-#include <iomanip>      // std::setw
-
+#include <iomanip>
 
 class ProgressListener : public CPPUNIT_NS::TestListener
 {
