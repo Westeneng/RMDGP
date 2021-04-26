@@ -41,18 +41,18 @@ public:
     CSocketProxy &operator=(const CSocketProxy& ) = delete;
     virtual ~CSocketProxy();
 
-    int bind(int fd, const struct sockaddr *addr, socklen_t addrlen);
+    virtual int bind(int fd, const struct sockaddr *addr, socklen_t addrlen);
     virtual int close(int fd);
     virtual int fcntl(int fd, int cmd, int param);
-    ssize_t recvfrom(int fd, void *buf, size_t len, int flags,
+    virtual ssize_t recvfrom(int fd, void *buf, size_t len, int flags,
                     struct sockaddr *src_addr, socklen_t *addrlen);
     ssize_t sendto(int fd, const void *buf, size_t len, int flags,
                     const struct sockaddr *dest_addr, socklen_t addrlen);
-    int setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen);
+    virtual int setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen);
     virtual int socket(int socket_family, int socket_type, int protocol);
 
-    int getifaddrs(struct ifaddrs **ifap);
-    void freeifaddrs(struct ifaddrs *ifa);
+    virtual int getifaddrs(struct ifaddrs **ifap);
+    virtual void freeifaddrs(struct ifaddrs *ifa);
 
     virtual int getErrno();
 };
