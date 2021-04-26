@@ -34,7 +34,8 @@
 class CSocketTestProxy : public CSocketProxy
 {
 public:
-    CSocketTestProxy() : closeCnt(0), fcntlCnt(0), Errno(0), socketCnt(0) {}
+    CSocketTestProxy() : closeCnt(0), fcntlCnt(0), Errno(0), socketCnt(0), recvfromCnt(0),
+        getifaddrsCnt(0), freeifaddrsCnt(0), setsockoptCnt(0)  {}
 
     virtual int close(int fd) override
     {
@@ -52,14 +53,36 @@ public:
     {
         socketCnt++; return CSocketProxy::socket(socket_family,socket_type, protocol);
     }
+    virtual ssize_t recvfrom(int fd, void *buf, size_t len, int flags,
+                    struct sockaddr *src_addr, socklen_t *addrlen) override
+    {
+        recvfromCnt++; return CSocketProxy::recvfrom(fd, buf, len, flags, src_addr, addrlen);
+    }
+    virtual int getifaddrs(struct ifaddrs **ifap) override
+    {
+        getifaddrsCnt++; return CSocketProxy::getifaddrs(ifap);
+    }
+    virtual void freeifaddrs(struct ifaddrs *ifa) override
+    {
+        freeifaddrsCnt++; return CSocketProxy::freeifaddrs(ifa);
+    }
+    virtual int setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen)
+                    override
+    {
+        setsockoptCnt++; return CSocketProxy::setsockopt(fd, level, optname, optval, optlen);
+    }
 
+    int setsockoptCnt;
     int closeCnt;
     int fcntlCnt;
     int socketCnt;
+    int recvfromCnt;
+    int getifaddrsCnt;
+    int freeifaddrsCnt;
     int Errno;
 
     //
-    void verifyErrnoInMessage(const std::string &message)
+    void verifyErrnoInMessage(const std::string &message, const std::string testName = "")
     {
       std::ostringstream errorNumberPart;
       errorNumberPart << " " << Errno << ":";
@@ -70,7 +93,7 @@ public:
          std::string failMessage = "Msg '" + message + "' Doesn't contain '" +
                  errorNumberPart.str() + "'";
 
-         CPPUNIT_FAIL(failMessage);
+         CPPUNIT_FAIL(testName + ": " + failMessage);
       }
     }
 };

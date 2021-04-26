@@ -29,6 +29,7 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 class CUdpSocket;
+struct in_addr;
 
 class testCUdpSocket : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST_SUITE(testCUdpSocket);
@@ -36,6 +37,12 @@ class testCUdpSocket : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST(testSetNonBlocking);
     CPPUNIT_TEST(testCloseUdpSocket);
     CPPUNIT_TEST(testOpenUdpSocket);
+    CPPUNIT_TEST(testRetrieveInterfaceAdressFromAddress);
+    CPPUNIT_TEST(testRetrieveInterfaceAdressFromAddressThrow);
+    CPPUNIT_TEST(testCloseAndThrowRuntimeException);
+    CPPUNIT_TEST(testBind);
+    CPPUNIT_TEST(testBindException);
+    CPPUNIT_TEST(testGetLocalSockAddress);
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -49,6 +56,16 @@ private:
     void testSetNonBlocking();
     void testCloseUdpSocket();
     void testOpenUdpSocket();
+    void testRetrieveInterfaceAdressFromAddress();
+    void testRetrieveInterfaceAdressFromAddressThrow();
+    void testCloseAndThrowRuntimeException();
+    void testBind();
+    void tstBindDataDriven( const std::string testName,
+                            const struct in_addr &interfaceAddress,
+                            int port,
+                            bool equalPortExpected);
+    void testBindException();
+    void testGetLocalSockAddress();
 };
 
 #endif /* TESTCUDPSOCKET_H */

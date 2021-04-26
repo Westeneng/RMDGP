@@ -29,6 +29,8 @@
 #include <fcntl.h>
 #include <sstream>
 #include <string.h>
+#include <netinet/ip.h>
+#include <ifaddrs.h>
 
 
 CUdpSocket::CUdpSocket() : sfd(-1), proxy(new CSocketProxy())
@@ -62,6 +64,50 @@ void CUdpSocket::setNonBlocking() const
    }
 }
 
+void CUdpSocket::bind(in_addr interfaceAddress, int port)
+{
+   // Bind the socket to local interface and port.
+   struct sockaddr_in localSockAddress = { 0 };
+   localSockAddress.sin_family = AF_INET;
+   localSockAddress.sin_port = htons(port);
+   localSockAddress.sin_addr = interfaceAddress;
+
+   if(proxy->bind(sfd, (struct sockaddr*)&localSockAddress, sizeof(localSockAddress)))
+   {
+      closeAndThrowRuntimeException("Error binding datagram socket");
+   }
+}
+
+int CUdpSocket::getLocalPort() const
+{
+   return ntohs(getLocalSockAddress().sin_port);
+}
+
+in_addr CUdpSocket::getLocalAddress() const
+{
+   return getLocalSockAddress().sin_addr;
+}
+
+sockaddr_in CUdpSocket::getLocalSockAddress() const
+{
+   struct sockaddr_in sockAddress = { 0, { INADDR_ANY } };
+
+   if(isOpen())
+   {
+      socklen_t adressLen = sizeof(sockAddress);
+
+      if(getsockname(sfd, (struct sockaddr *)&sockAddress, &adressLen))
+      {
+         int errorNbr = proxy->getErrno();
+         std::ostringstream message;
+         message << "Error retrieving sender port " << errorNbr << ": " << strerror(errorNbr);
+         throw std::runtime_error(message.str());
+      }
+   }
+
+   return sockAddress;
+}
+
 void CUdpSocket::openUdpSocket()
 {
    if(sfd >= 0)
@@ -91,6 +137,71 @@ void CUdpSocket::closeUdpSocket()
    }
    sfd = -1;
 }
+
+in_addr CUdpSocket::retrieveInterfaceAdressFromAddress(const in_addr address)
+{
+   class CScopedIfaddr {   // frees ifaddr when object goes out of scope
+   public:
+      CScopedIfaddr(std::shared_ptr<CSocketProxy> Proxy) : proxy(Proxy), ifaddr(NULL) {}
+      ~CScopedIfaddr() { if(ifaddr!=NULL) proxy->freeifaddrs(ifaddr); }
+
+      struct ifaddrs *ifaddr;
+      std::shared_ptr<CSocketProxy> proxy;
+   } scoped(this->proxy);
+
+   // by default the address is set to INADDR_ANY.
+   in_addr result = { INADDR_ANY };
+
+   if (proxy->getifaddrs(&scoped.ifaddr) == -1)
+   {
+      int errorNbr = proxy->getErrno();
+      std::ostringstream message;
+
+      message << "Error getifaddrs " << errorNbr << ": " << strerror(errorNbr);
+      throw std::runtime_error(message.str());
+   }
+   for (struct ifaddrs *ifa = scoped.ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+   {
+      if (ifa->ifa_addr == NULL)
+          continue;
+      switch(ifa->ifa_addr->sa_family)
+      {
+         case AF_INET:
+         {
+            in_addr_t ifAddress = ((struct sockaddr_in *)ifa->ifa_addr)->sin_addr.s_addr;
+            in_addr_t ifMask = ((struct sockaddr_in *)ifa->ifa_netmask)->sin_addr.s_addr;
+
+            if((ifAddress & ifMask) == (address.s_addr & ifMask))
+            {
+               result.s_addr = ifAddress;
+
+               return result;
+            }
+            break;
+         }
+      }
+   }
+
+   return result;
+}
+
+void CUdpSocket::closeAndThrowRuntimeException(const std::string matter)
+{
+   int errorNbr = proxy->getErrno();
+   std::ostringstream message;
+
+   message << matter << " " << errorNbr << ": " << strerror(errorNbr);
+   try
+   {
+      closeUdpSocket();
+   }
+   catch(std::runtime_error &re)
+   {
+      message << " && " << re.what();
+   }
+   throw std::runtime_error(message.str());
+}
+
 
 bool CUdpSocket::isOpen() const
 {
