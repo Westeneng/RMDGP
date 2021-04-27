@@ -122,7 +122,7 @@ void testCUdpSocket::testSetNonBlocking()
    // a normally opened socket must have the ability to be set to non blocking
    CPPUNIT_ASSERT_NO_THROW(udpSocket.setNonBlocking());
 
-   // create a test proxy to force an error on the second call of fcntl
+   // create a test proxy to simulate an error on the second call of fcntl
    class CTestProxyFcntlError : public CSocketTestProxy
    {
    public:
@@ -178,7 +178,7 @@ void testCUdpSocket::testRetrieveInterfaceAdressFromAddressThrow()
    CUdpSocket udpSocket;
    const in_addr localAddress = { inet_addr("127.0.0.1") };
 
-   // create a test proxy to force simulate an error on call of getifaddrs
+   // create a test proxy to simulate an error on call of getifaddrs
    class CTestProxyGetifaddrsError : public CSocketTestProxy
    {
    public:
@@ -201,6 +201,7 @@ void testCUdpSocket::testRetrieveInterfaceAdressFromAddressThrow()
    {
       testProxy->verifyErrnoInMessage(re.what());
       CPPUNIT_ASSERT_EQUAL(1, testProxy->getifaddrsCnt);
+      // verify that freeifaddrs is not called while getifaddrs failed
       CPPUNIT_ASSERT_EQUAL(0, testProxy->freeifaddrsCnt);
    }
 }
