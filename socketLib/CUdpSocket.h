@@ -68,6 +68,7 @@ public:
 
     /// \brief returns the socket address at which the socket is bound
     /// \throws std::runtime_error when OS reports an error.
+    /// \warning be aware that port number is in network byte order
     sockaddr_in getLocalSockAddress() const;
 
     /// \brief opens a UPD datagram socket and stores the file descriptor in sfd.
