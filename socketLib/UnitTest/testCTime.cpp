@@ -24,7 +24,7 @@
  * Created on Apr 9, 2021, 4:13:36 PM
  */
 
-#include "testclassCTime.h"
+#include "testCTime.h"
 #include "../CTime.h"
 #include <sstream>
 
