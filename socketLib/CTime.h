@@ -44,6 +44,8 @@ public:
     CTime operator*(int count) const;
     bool operator==(const CTime& other) const;
     bool operator!=(const CTime& other) const;
+    bool operator>(const CTime& other) const;
+    bool operator<(const CTime& other) const;
     void enforceNsecRange();
     
     friend std::ostream& operator<<(std::ostream& os, const CTime &time);

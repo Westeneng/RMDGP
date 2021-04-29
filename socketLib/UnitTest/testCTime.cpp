@@ -193,6 +193,44 @@ void testCTime::tstEqualDataDriven(const std::string testName,
    }
 }
 
+void testCTime::testLessThan()
+{
+   tstLessThanDataDriven("equal value", CTime(0,1), CTime(0,1), false);
+   tstLessThanDataDriven("equal value2", CTime(123456789), CTime(123456789), false);
+   tstLessThanDataDriven("equal value3", CTime(-5,1), CTime(-5,1), false);
+   tstLessThanDataDriven("only sec greater", CTime(1,1), CTime(0,14), false);
+   tstLessThanDataDriven("only nsec greater", CTime(-1000,15), CTime(-1000,14), false);
+   tstLessThanDataDriven("greater", CTime(1,150000), CTime(0,15), false);
+   tstLessThanDataDriven("only sec smaller", CTime(11,999999999), CTime(12), true);
+   tstLessThanDataDriven("only nsec smaller", CTime(11,0), CTime(11,1), true);
+   tstLessThanDataDriven("smaller", CTime(-5544332211,0), CTime(11,123456789), true);
+}
+
+void testCTime::tstLessThanDataDriven(const std::string testName,
+                    const CTime &value1, const CTime &value2, const bool expectedResult)
+{
+   CPPUNIT_ASSERT_EQUAL_MESSAGE(testName, expectedResult, value1<value2);
+}
+
+void testCTime::testGreaterThan()
+{
+   tstGreaterThanDataDriven("equal value", CTime(0,1), CTime(0,1), false);
+   tstGreaterThanDataDriven("equal value2", CTime(123456789), CTime(123456789), false);
+   tstGreaterThanDataDriven("equal value3", CTime(-5,1), CTime(-5,1), false);
+   tstGreaterThanDataDriven("only sec greater", CTime(1,0), CTime(0,999999999), true);
+   tstGreaterThanDataDriven("only nsec greater", CTime(-1000,17), CTime(-1000,16), true);
+   tstGreaterThanDataDriven("greater", CTime(1,150000), CTime(0,15), true);
+   tstGreaterThanDataDriven("only sec smaller", CTime(11,999999999), CTime(12), false);
+   tstGreaterThanDataDriven("only nsec smaller", CTime(11,0), CTime(11,1), false);
+   tstGreaterThanDataDriven("smaller", CTime(-5544332211,0), CTime(11,123456789), false);
+}
+
+void testCTime::tstGreaterThanDataDriven(const std::string testName,
+                    const CTime &value1, const CTime &value2, const bool expectedResult)
+{
+   CPPUNIT_ASSERT_EQUAL_MESSAGE(testName, expectedResult, value1>value2);
+}
+
 void testCTime::testMultiply()
 {
    tstMultiplyDataDriven("ns * 1000", 

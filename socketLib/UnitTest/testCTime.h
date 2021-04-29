@@ -38,6 +38,8 @@ class testCTime : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST(testAdd);
     CPPUNIT_TEST(testCopy);
     CPPUNIT_TEST(testEqual);
+    CPPUNIT_TEST(testLessThan);
+    CPPUNIT_TEST(testGreaterThan);
     CPPUNIT_TEST(testMultiply);
 
     CPPUNIT_TEST_SUITE_END();
@@ -59,6 +61,12 @@ private:
     void testCopy();
     void testEqual();
     void tstEqualDataDriven(const std::string testName, 
+                    const CTime &value1, const CTime &value2, const bool expectedResult);
+    void testLessThan();
+    void tstLessThanDataDriven(const std::string testName,
+                    const CTime &value1, const CTime &value2, const bool expectedResult);
+    void testGreaterThan();
+    void tstGreaterThanDataDriven(const std::string testName,
                     const CTime &value1, const CTime &value2, const bool expectedResult);
     void testMultiply();
     void tstMultiplyDataDriven(const std::string testName,

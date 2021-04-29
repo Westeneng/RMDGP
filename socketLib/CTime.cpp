@@ -150,6 +150,16 @@ bool CTime::operator!=(const CTime& other) const
    return ((tv_sec != other.tv_sec) || (tv_nsec != other.tv_nsec));   
 }
 
+bool CTime::operator>(const CTime& other) const
+{
+   return tv_sec > other.tv_sec || ((tv_sec==other.tv_sec) && (tv_nsec > other.tv_nsec));
+}
+
+bool CTime::operator<(const CTime& other) const
+{
+   return tv_sec < other.tv_sec || ((tv_sec==other.tv_sec) && (tv_nsec < other.tv_nsec));
+}
+
 void CTime::enforceNsecRange()
 {
    while(tv_nsec<0)
