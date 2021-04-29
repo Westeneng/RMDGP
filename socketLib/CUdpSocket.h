@@ -27,14 +27,13 @@
 #ifndef CUDPSOCKET_H
 #define CUDPSOCKET_H
 
-#include <memory>
+#include "CFileDescriptor.h"
 
-class CSocketProxy;
 struct in_addr;
 struct sockaddr_in;
 
 
-class CUdpSocket {
+class CUdpSocket : public CFileDescriptor {
 public:
     CUdpSocket();
     CUdpSocket(std::shared_ptr<CSocketProxy> sockProxy);
@@ -56,7 +55,7 @@ public:
     ///        can be retrieved with getLocalPort()
     /// \throws std::runtime_error when OS reports an error.
     /// \warning when the bind fails, the socket will be closed.
-    void bind(in_addr interfaceAddress, int port);
+    void bind(const in_addr interfaceAddress, int port);
 
     /// \brief returns the port at which the socket is bound
     /// \throws std::runtime_error when OS reports an error.
@@ -81,28 +80,17 @@ public:
     /// \throws std::runtime_error when OS reports an error.
     void closeUdpSocket();
 
-    /// \brief returns true if the object is successfully opened
-    bool isOpen() const;
-
     /// \brief retrieves the interface address from a given address. Looks for an interface
     ///        address with a matching subnet. If no matching address found INADDR_ANY will be
     ///        returned
     /// \throws std::runtime_error when OS reports an error.
     in_addr retrieveInterfaceAdressFromAddress(const in_addr address);
 
-    /// \brief sets the internal socket proxy object. For testing purpose only!
-    /// \warning  DON'T USE THIS
-    void setSocketProxy(std::shared_ptr<CSocketProxy> sockProxy);
-
     /// \brief helper function that closes the socket and assembles and throws a std::runtime_error
     ///        exception. The what() message is composed from the given matter and the available
     ///        errno. This is meant for error handling when OS reports an error.
     /// \throws always std::runtime_error
     void closeAndThrowRuntimeException(const std::string matter);
-
-protected:
-    int sfd;     // socket file descriptor
-    std::shared_ptr<CSocketProxy> proxy;
 };
 
 #endif /* CUDPSOCKET_H */

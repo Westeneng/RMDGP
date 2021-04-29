@@ -33,18 +33,16 @@
 #include <ifaddrs.h>
 
 
-CUdpSocket::CUdpSocket() : sfd(-1), proxy(new CSocketProxy())
+CUdpSocket::CUdpSocket()
 {
 }
 
-CUdpSocket::CUdpSocket(std::shared_ptr<CSocketProxy> sockProxy) : sfd(-1), proxy(sockProxy)
+CUdpSocket::CUdpSocket(std::shared_ptr<CSocketProxy> sockProxy) : CFileDescriptor(sockProxy)
 {
 }
 
 CUdpSocket::~CUdpSocket()
 {
-   if(sfd >= 0) proxy->close(sfd);
-   sfd = -1;
 }
 
 void CUdpSocket::setNonBlocking() const
@@ -64,7 +62,7 @@ void CUdpSocket::setNonBlocking() const
    }
 }
 
-void CUdpSocket::bind(in_addr interfaceAddress, int port)
+void CUdpSocket::bind(const in_addr interfaceAddress, int port)
 {
    // Bind the socket to local interface and port.
    struct sockaddr_in localSockAddress = { 0 };
@@ -203,12 +201,3 @@ void CUdpSocket::closeAndThrowRuntimeException(const std::string matter)
 }
 
 
-bool CUdpSocket::isOpen() const
-{
-   return sfd >= 0;
-}
-
-void CUdpSocket::setSocketProxy(std::shared_ptr<CSocketProxy> sockProxy)
-{
-   proxy = sockProxy;
-}
