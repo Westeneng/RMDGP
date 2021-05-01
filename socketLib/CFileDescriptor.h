@@ -40,7 +40,7 @@ public:
     virtual ~CFileDescriptor();
 
     /// \brief returns true if the object is successfully opened
-    bool isOpen() const;
+    bool isOpen() const { return sfd >= 0; }
 
     /// \brief sets the internal socket proxy object. For testing purpose only!
     /// \warning  DON'T USE THIS

@@ -41,11 +41,6 @@ CFileDescriptor::~CFileDescriptor()
    sfd = -1;
 }
 
-bool CFileDescriptor::isOpen() const
-{
-   return sfd >= 0;
-}
-
 void CFileDescriptor::setSocketProxy(std::shared_ptr<CSocketProxy> sockProxy)
 {
    proxy = sockProxy;
