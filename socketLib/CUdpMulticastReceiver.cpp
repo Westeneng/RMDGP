@@ -81,7 +81,7 @@ void CUdpMulticastReceiver::open(const std::string multicastAddress, int multica
    // Enable SO_REUSEADDR to allow others to receive copies of the datagrams
    int reuse=1;
 
-   if(proxy->setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse)))
+   if(proxy->setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse)))
    {
       closeAndThrowRuntimeException("Error setting SO_REUSEADDR");
    }
@@ -95,7 +95,7 @@ void CUdpMulticastReceiver::open(const std::string multicastAddress, int multica
    mcGroup.imr_sourceaddr.s_addr = inet_addr( sourceAddress.c_str() );
    mcGroup.imr_interface = interfaceAddress;
 
-   if(proxy->setsockopt(sfd, IPPROTO_IP, IP_ADD_SOURCE_MEMBERSHIP, (char *)&mcGroup, sizeof(mcGroup)))
+   if(proxy->setsockopt(fd, IPPROTO_IP, IP_ADD_SOURCE_MEMBERSHIP, (char *)&mcGroup, sizeof(mcGroup)))
    {
       closeAndThrowRuntimeException("Error joining multicast group");
    }
@@ -103,7 +103,7 @@ void CUdpMulticastReceiver::open(const std::string multicastAddress, int multica
    // set receive multicast all to 0. But I am not sure this is correct. 
    // I couldn't discover different behavior. Probably this doesn't provides something useful!
    int rcv_multicast_all = 0;   
-   if(proxy->setsockopt(sfd, SOL_SOCKET, IP_MULTICAST_ALL,
+   if(proxy->setsockopt(fd, SOL_SOCKET, IP_MULTICAST_ALL,
                        (char *)&rcv_multicast_all, sizeof(rcv_multicast_all)) )
    {
       closeAndThrowRuntimeException("Error setting IP_MULTICAST_ALL");
@@ -125,7 +125,7 @@ size_t CUdpMulticastReceiver::receive(void *buffer, size_t bufferSize)
       {
          do
          {
-            result = proxy->recvfrom(sfd, buffer, bufferSize, 0, 
+            result = proxy->recvfrom(fd, buffer, bufferSize, 0, 
                                     (struct sockaddr *)&srcAddress, &adressLen);
          } while(result==-1 && proxy->getErrno() == EINTR);
       } while(result!=-1 && (sourceIpAddress->s_addr != srcAddress.sin_addr.s_addr));

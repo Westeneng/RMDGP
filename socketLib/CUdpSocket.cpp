@@ -47,11 +47,11 @@ CUdpSocket::~CUdpSocket()
 
 void CUdpSocket::setNonBlocking() const
 {
-   int result = proxy->fcntl(sfd, F_GETFL, 0);
+   int result = proxy->fcntl(fd, F_GETFL, 0);
    if(result != -1)
    {
       int flags = result;
-      result = proxy->fcntl(sfd, F_SETFL, flags | O_NONBLOCK);
+      result = proxy->fcntl(fd, F_SETFL, flags | O_NONBLOCK);
    }
    if(result == -1)
    {
@@ -70,7 +70,7 @@ void CUdpSocket::bind(const in_addr interfaceAddress, int port)
    localSockAddress.sin_port = htons(port);
    localSockAddress.sin_addr = interfaceAddress;
 
-   if(proxy->bind(sfd, (struct sockaddr*)&localSockAddress, sizeof(localSockAddress)))
+   if(proxy->bind(fd, (struct sockaddr*)&localSockAddress, sizeof(localSockAddress)))
    {
       closeAndThrowRuntimeException("Error binding datagram socket");
    }
@@ -94,7 +94,7 @@ sockaddr_in CUdpSocket::getLocalSockAddress() const
    {
       socklen_t adressLen = sizeof(sockAddress);
 
-      if(getsockname(sfd, (struct sockaddr *)&sockAddress, &adressLen))
+      if(getsockname(fd, (struct sockaddr *)&sockAddress, &adressLen))
       {
          int errorNbr = proxy->getErrno();
          std::ostringstream message;
@@ -108,14 +108,14 @@ sockaddr_in CUdpSocket::getLocalSockAddress() const
 
 void CUdpSocket::openUdpSocket()
 {
-   if(sfd >= 0)
+   if(fd >= 0)
    {
       closeUdpSocket();
    }
 
    // Create a datagram socket
-   sfd = proxy->socket(AF_INET, SOCK_DGRAM, 0);
-   if(sfd < 0)
+   fd = proxy->socket(AF_INET, SOCK_DGRAM, 0);
+   if(fd < 0)
    {
       int errorNbr = proxy->getErrno();
       std::ostringstream message;
@@ -126,14 +126,14 @@ void CUdpSocket::openUdpSocket()
 
 void CUdpSocket::closeUdpSocket()
 {
-   if(proxy->close(sfd))
+   if(proxy->close(fd))
    {
       int errorNbr = proxy->getErrno();
       std::ostringstream message;
       message << "Error closing socket " << errorNbr << ": " << strerror(errorNbr);
       throw std::runtime_error(message.str());
    }
-   sfd = -1;
+   fd = -1;
 }
 
 in_addr CUdpSocket::retrieveInterfaceAdressFromAddress(const in_addr address)

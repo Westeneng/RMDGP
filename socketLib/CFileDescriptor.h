@@ -31,7 +31,6 @@
 
 class CSocketProxy;
 
-
 class CFileDescriptor {
 public:
     CFileDescriptor();
@@ -40,14 +39,17 @@ public:
     virtual ~CFileDescriptor();
 
     /// \brief returns true if the object is successfully opened
-    bool isOpen() const { return sfd >= 0; }
+    bool isOpen() const { return fd >= 0; }
+    
+    /// \brief returns the file descriptor
+    int getFd() const { return fd; }
 
     /// \brief sets the internal socket proxy object. For testing purpose only!
     /// \warning  DON'T USE THIS
     void setSocketProxy(std::shared_ptr<CSocketProxy> sockProxy);
 
 protected:
-    int sfd;     // socket file descriptor
+    int fd;     // file descriptor
     std::shared_ptr<CSocketProxy> proxy;
 };
 

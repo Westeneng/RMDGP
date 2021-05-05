@@ -27,18 +27,18 @@
 #include "CFileDescriptor.h"
 #include "CSocketProxy.h"        // includes sys/types.h and sys/socket.h
 
-CFileDescriptor::CFileDescriptor() : sfd(-1), proxy(new CSocketProxy())
+CFileDescriptor::CFileDescriptor() : fd(-1), proxy(new CSocketProxy())
 {
 }
 
-CFileDescriptor::CFileDescriptor(std::shared_ptr<CSocketProxy> sockProxy) : sfd(-1), proxy(sockProxy)
+CFileDescriptor::CFileDescriptor(std::shared_ptr<CSocketProxy> sockProxy) : fd(-1), proxy(sockProxy)
 {
 }
 
 CFileDescriptor::~CFileDescriptor()
 {
-   if(sfd >= 0) proxy->close(sfd);
-   sfd = -1;
+   if(fd >= 0) proxy->close(fd);
+   fd = -1;
 }
 
 void CFileDescriptor::setSocketProxy(std::shared_ptr<CSocketProxy> sockProxy)
