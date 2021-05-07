@@ -149,10 +149,6 @@ size_t CUdpMulticastReceiver::receive(void *buffer, size_t bufferSize)
    else if(sourcePortNumber==-1)
    {
       sourcePortNumber = ntohs(srcAddress.sin_port);
-      
-      std::cout << adressLen << " adres:" << inet_ntoa(srcAddress.sin_addr);
-      std::cout << " port:" << ntohs(srcAddress.sin_port);
-      std::cout << std::endl;
    }
    
    return result;
