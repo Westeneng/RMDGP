@@ -42,6 +42,15 @@ class testCUdpSocket : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST(testCloseAndThrowRuntimeException);
     CPPUNIT_TEST(testBind);
     CPPUNIT_TEST(testBindException);
+    CPPUNIT_TEST(testSendTo);
+    CPPUNIT_TEST(testSendToThrow);
+    CPPUNIT_TEST(testSendToInterrupted);
+    CPPUNIT_TEST(testSendToWouldBlock);
+//    CPPUNIT_TEST(testReceiveFrom); already tested at testSendTo
+    CPPUNIT_TEST(testReceiveFromThrow);
+    CPPUNIT_TEST(testReceiveFromInterrupted);
+    CPPUNIT_TEST(testReceiveFromWouldBlock);
+
     CPPUNIT_TEST(testGetLocalSockAddress);
 
     CPPUNIT_TEST_SUITE_END();
@@ -65,6 +74,13 @@ private:
                             int port,
                             bool equalPortExpected);
     void testBindException();
+    void testSendTo();
+    void testSendToThrow();
+    void testSendToInterrupted();
+    void testSendToWouldBlock();
+    void testReceiveFromThrow();
+    void testReceiveFromInterrupted();
+    void testReceiveFromWouldBlock();
     void testGetLocalSockAddress();
 };
 

@@ -80,6 +80,21 @@ public:
     /// \throws std::runtime_error when OS reports an error.
     void closeUdpSocket();
 
+    /// \brief sends a message to the destination
+    /// \return the number of bytes send. If the socket is in non blocking mode and the socket would
+    ///         block then 0 will be returned.
+    /// \throws std::runtime_error when OS reports an error that cannot be handled.
+    size_t sendTo(const void *buffer, size_t bufferSize, sockaddr_in *destination);
+
+    /// \brief receives an udp message from the socket.
+    /// \param buffer the buffer that receives the message
+    /// \param bufferSize, the size of buffer
+    /// \param source, buffer that will receive the source address of the message.
+    /// \return the number of bytes received. Will be 0 when socket is in non blocking mode and
+    ///         no messages are available.
+    /// \throws std::runtime_error when OS reports an error.
+    size_t receiveFrom(void *buffer, size_t bufferSize, sockaddr_in *source);
+
     /// \brief retrieves the interface address from a given address. Looks for an interface
     ///        address with a matching subnet. If no matching address found INADDR_ANY will be
     ///        returned

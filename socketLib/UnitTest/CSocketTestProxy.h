@@ -35,7 +35,7 @@ class CSocketTestProxy : public CSocketProxy
 {
 public:
     CSocketTestProxy() : closeCnt(0), fcntlCnt(0), Errno(0), socketCnt(0), recvfromCnt(0),
-        getifaddrsCnt(0), freeifaddrsCnt(0), setsockoptCnt(0)  {}
+        sendtoCnt(0), getifaddrsCnt(0), freeifaddrsCnt(0), setsockoptCnt(0)  {}
 
     virtual int close(int fd) override
     {
@@ -58,6 +58,11 @@ public:
     {
         recvfromCnt++; return CSocketProxy::recvfrom(fd, buf, len, flags, src_addr, addrlen);
     }
+    virtual ssize_t sendto(int fd, const void *buf, size_t len, int flags,
+                        const struct sockaddr *dest_addr, socklen_t addrlen)
+    {
+        sendtoCnt++; return CSocketProxy::sendto(fd, buf, len, flags, dest_addr, addrlen);
+    }
     virtual int getifaddrs(struct ifaddrs **ifap) override
     {
         getifaddrsCnt++; return CSocketProxy::getifaddrs(ifap);
@@ -77,6 +82,7 @@ public:
     int fcntlCnt;
     int socketCnt;
     int recvfromCnt;
+    int sendtoCnt;
     int getifaddrsCnt;
     int freeifaddrsCnt;
     int Errno;

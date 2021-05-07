@@ -26,6 +26,7 @@
 
 #include "CUdpSocket.h"
 #include "CSocketProxy.h"        // includes sys/types.h and sys/socket.h
+#include "CSocketAddress.h"
 #include <fcntl.h>
 #include <sstream>
 #include <string.h>
@@ -98,7 +99,7 @@ sockaddr_in CUdpSocket::getLocalSockAddress() const
       {
          int errorNbr = proxy->getErrno();
          std::ostringstream message;
-         message << "Error retrieving sender port " << errorNbr << ": " << strerror(errorNbr);
+         message << "Error retrieving sock address " << errorNbr << ": " << strerror(errorNbr);
          throw std::runtime_error(message.str());
       }
    }
@@ -134,6 +135,64 @@ void CUdpSocket::closeUdpSocket()
       throw std::runtime_error(message.str());
    }
    fd = -1;
+}
+
+size_t CUdpSocket::sendTo(const void *buffer, size_t bufferSize, sockaddr_in *destination)
+{
+   ssize_t result;
+
+   do
+   {
+      result = proxy->sendto(fd, buffer, bufferSize, 0,
+                            (struct sockaddr*)destination, sizeof(sockaddr_in));
+   } while(result==-1 && proxy->getErrno() == EINTR);
+
+   if(result == -1)
+   {
+      int errorNbr = proxy->getErrno();
+      if(errorNbr == EAGAIN || errorNbr == EWOULDBLOCK)
+      {
+         result = 0;
+      }
+      else
+      {
+         std::ostringstream message;
+         message << "Error sendto " << errorNbr << ": " << strerror(errorNbr);
+         throw std::runtime_error(message.str());
+      }
+   }
+
+   return result;
+}
+
+size_t CUdpSocket::receiveFrom(void *buffer, size_t bufferSize, sockaddr_in *source)
+{
+   ssize_t result;
+   socklen_t adressLen = sizeof(sockaddr_in);
+
+   // receive until an error is reported except EINTR
+   do
+   {
+      result = proxy->recvfrom(fd, buffer, bufferSize, 0, (struct sockaddr *)source, &adressLen);
+   } while(result==-1 && proxy->getErrno() == EINTR);
+
+   if(result == -1)
+   {
+      int errorNbr = proxy->getErrno();
+
+      if(errorNbr == EAGAIN || errorNbr == EWOULDBLOCK)
+      {
+         result = 0;
+      }
+      else
+      {
+         std::ostringstream message;
+         message << "Error receivefrom " << errorNbr << ": " << strerror(errorNbr);
+         throw std::runtime_error(message.str());
+      }
+   }
+
+   return result;
 }
 
 in_addr CUdpSocket::retrieveInterfaceAdressFromAddress(const in_addr address)
