@@ -35,7 +35,7 @@ class CSocketTestProxy : public CSocketProxy
 {
 public:
     CSocketTestProxy() : closeCnt(0), fcntlCnt(0), Errno(0), socketCnt(0), recvfromCnt(0),
-        sendtoCnt(0), getifaddrsCnt(0), freeifaddrsCnt(0), setsockoptCnt(0)  {}
+        sendtoCnt(0), getifaddrsCnt(0), freeifaddrsCnt(0), setsockoptCnt(0), pselectCnt(0)  {}
 
     virtual int close(int fd) override
     {
@@ -76,6 +76,12 @@ public:
     {
         setsockoptCnt++; return CSocketProxy::setsockopt(fd, level, optname, optval, optlen);
     }
+    virtual int pselect(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+                        const struct timespec *timeout, const sigset_t *sigmask) override
+    {
+        pselectCnt++;
+        return CSocketProxy::pselect(nfds, readfds, writefds, exceptfds, timeout, sigmask);
+    }
 
     int setsockoptCnt;
     int closeCnt;
@@ -85,6 +91,7 @@ public:
     int sendtoCnt;
     int getifaddrsCnt;
     int freeifaddrsCnt;
+    int pselectCnt;
     int Errno;
 
     //
