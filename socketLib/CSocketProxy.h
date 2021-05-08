@@ -33,6 +33,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <memory>
 
 class CSocketProxy {
 public:
@@ -50,11 +51,25 @@ public:
                         const struct sockaddr *dest_addr, socklen_t addrlen);
     virtual int setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen);
     virtual int socket(int socket_family, int socket_type, int protocol);
+    virtual int pselect(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+                        const struct timespec *timeout, const sigset_t *sigmask);
 
     virtual int getifaddrs(struct ifaddrs **ifap);
     virtual void freeifaddrs(struct ifaddrs *ifa);
 
     virtual int getErrno();
+};
+
+/// \brief class to limit the number of instances of CSocketProxy to one.
+class CSocketProxySingleton : public CSocketProxy {
+public:
+    virtual ~CSocketProxySingleton();
+    /// \brief returns the CSocketProxy singleton
+    static std::shared_ptr<CSocketProxySingleton> get();
+private:
+    CSocketProxySingleton();
+    CSocketProxySingleton(const CSocketProxySingleton &) = delete;
+    CSocketProxySingleton& operator=(const CSocketProxySingleton &) = delete;
 };
 
 #endif /* CSOCKET_PROXY_H */

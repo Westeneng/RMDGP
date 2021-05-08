@@ -30,6 +30,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <ifaddrs.h>
+#include <sys/select.h>
 
 CSocketProxy::CSocketProxy()
 {
@@ -76,6 +77,12 @@ int CSocketProxy::setsockopt(int fd, int level, int optname, const void *optval,
    return ::setsockopt(fd, level, optname, optval, optlen);
 }
 
+int CSocketProxy::pselect(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+                        const struct timespec *timeout, const sigset_t *sigmask)
+{
+   return ::pselect(nfds, readfds, writefds, exceptfds, timeout, sigmask);
+}
+
 int CSocketProxy::getErrno()
 {
    return errno;
@@ -89,4 +96,23 @@ int CSocketProxy::getifaddrs(struct ifaddrs **ifap)
 void CSocketProxy::freeifaddrs(struct ifaddrs *ifa)
 {
    ::freeifaddrs(ifa);
+}
+
+
+// Implementation of CSocketProxy singleton
+
+CSocketProxySingleton::CSocketProxySingleton()
+{
+}
+
+CSocketProxySingleton::~CSocketProxySingleton()
+{
+}
+
+std::shared_ptr<CSocketProxySingleton> CSocketProxySingleton::get()
+{
+   // the single CSocketProxySingleton instance
+   static std::shared_ptr<CSocketProxySingleton> instance(new CSocketProxySingleton);
+
+   return instance;
 }

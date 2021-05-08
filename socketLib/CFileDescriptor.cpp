@@ -27,7 +27,7 @@
 #include "CFileDescriptor.h"
 #include "CSocketProxy.h"        // includes sys/types.h and sys/socket.h
 
-CFileDescriptor::CFileDescriptor() : fd(-1), proxy(new CSocketProxy())
+CFileDescriptor::CFileDescriptor() : fd(-1), proxy(CSocketProxySingleton::get())
 {
 }
 
