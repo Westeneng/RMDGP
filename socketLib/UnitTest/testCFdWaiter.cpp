@@ -38,7 +38,7 @@
 CPPUNIT_TEST_SUITE_REGISTRATION(testCFdWaiter);
 
 namespace {
-   const CTime miliSecond(0, CTime::nsecInMillisec);   
+   const CTime milliSecond(0, CTime::nsecInMillisec);
 }
 
 
@@ -139,38 +139,38 @@ void testCFdWaiter::testWaitUntil()
    CUdpSocket udpReceiver, udpSender;
    CTime currentTime;
 
-   CTime targetTime = CClock::getMonotonicTime(currentTime) + miliSecond;
+   CTime targetTime = CClock::getMonotonicTime(currentTime) + milliSecond;
    
    CPPUNIT_ASSERT_EQUAL(true, fdWaiter.waitUntil(targetTime));
    CPPUNIT_ASSERT_GREATER(targetTime, CClock::getMonotonicTime(currentTime));
    
    fdWaiter.addReadFileDescriptor(&udpReceiver);
-   targetTime = CClock::getMonotonicTime(currentTime) + miliSecond;
+   targetTime = CClock::getMonotonicTime(currentTime) + milliSecond;
    // socket not opened so timeout expected
    CPPUNIT_ASSERT_EQUAL(true, fdWaiter.waitUntil(targetTime));
    CPPUNIT_ASSERT_GREATER(targetTime, CClock::getMonotonicTime(currentTime));
    
    CPPUNIT_ASSERT_NO_THROW(udpReceiver.openUdpSocket());
    CPPUNIT_ASSERT_NO_THROW(udpReceiver.bind(localAddress, 7000));
-   targetTime = CClock::getMonotonicTime(currentTime) + miliSecond;
+   targetTime = CClock::getMonotonicTime(currentTime) + milliSecond;
    // socket not readable so timeout expected
    CPPUNIT_ASSERT_EQUAL(true, fdWaiter.waitUntil(targetTime));
    CPPUNIT_ASSERT_GREATER(targetTime, CClock::getMonotonicTime(currentTime));
 
    fdWaiter.addWriteFileDescriptor(&udpSender);
-   targetTime = CClock::getMonotonicTime(currentTime) + miliSecond;
+   targetTime = CClock::getMonotonicTime(currentTime) + milliSecond;
    // socket not opened so timeout expected
    CPPUNIT_ASSERT_EQUAL(true, fdWaiter.waitUntil(targetTime));
    CPPUNIT_ASSERT_GREATER(targetTime, CClock::getMonotonicTime(currentTime));
 
    CPPUNIT_ASSERT_NO_THROW(udpSender.openUdpSocket());
-   targetTime = CClock::getMonotonicTime(currentTime) + miliSecond;
+   targetTime = CClock::getMonotonicTime(currentTime) + milliSecond;
    // socket opened so NO timeout expected
    CPPUNIT_ASSERT_EQUAL(false, fdWaiter.waitUntil(targetTime));
    CPPUNIT_ASSERT_LESS(targetTime, CClock::getMonotonicTime(currentTime));
 
    fdWaiter.delWriteFileDescriptor(&udpSender);
-   targetTime = CClock::getMonotonicTime(currentTime) + miliSecond;
+   targetTime = CClock::getMonotonicTime(currentTime) + milliSecond;
    // udpSender deleted from fdWaiter so timeout expected
    CPPUNIT_ASSERT_EQUAL(true, fdWaiter.waitUntil(targetTime));
    CPPUNIT_ASSERT_GREATER(targetTime, CClock::getMonotonicTime(currentTime));
@@ -180,7 +180,7 @@ void testCFdWaiter::testWaitUntil()
    CPPUNIT_ASSERT_EQUAL(sizeof(testMessage), 
            udpSender.sendTo(testMessage, sizeof(testMessage), &sockAddress));
 
-   targetTime = CClock::getMonotonicTime(currentTime) + miliSecond;
+   targetTime = CClock::getMonotonicTime(currentTime) + milliSecond;
    // socket readable so NO timeout expected
    CPPUNIT_ASSERT_EQUAL(false, fdWaiter.waitUntil(targetTime));
    CPPUNIT_ASSERT_LESS(targetTime, CClock::getMonotonicTime(currentTime));
@@ -210,7 +210,7 @@ void testCFdWaiter::testWaitUntilInterrupted()
    std::shared_ptr<CTestProxyPselectInterrupted> testProxy( new CTestProxyPselectInterrupted );
    fdWaiter.setSocketProxy(testProxy);
 
-   CTime targetTime = CClock::getMonotonicTime(currentTime) + miliSecond;
+   CTime targetTime = CClock::getMonotonicTime(currentTime) + milliSecond;
    /// no socket added so timeout expected
    CPPUNIT_ASSERT_EQUAL(true, fdWaiter.waitUntil(targetTime));
    CPPUNIT_ASSERT_GREATER(targetTime, CClock::getMonotonicTime(currentTime));
@@ -237,7 +237,7 @@ void testCFdWaiter::testWaitUntilThrows()
    std::shared_ptr<CTestProxyPselectError> testProxy( new CTestProxyPselectError );
    fdWaiter.setSocketProxy(testProxy);
 
-   CTime targetTime = CClock::getMonotonicTime(currentTime) + miliSecond;
+   CTime targetTime = CClock::getMonotonicTime(currentTime) + milliSecond;
 
    try
    {
