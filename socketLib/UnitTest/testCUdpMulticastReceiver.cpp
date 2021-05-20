@@ -27,6 +27,7 @@
 #include "testCUdpMulticastReceiver.h"
 #include "CSocketTestProxy.h"
 #include "../CUdpMulticastReceiver.h"
+//#include "../CUdpMulticastSender.h"
 #include <netinet/ip.h>
 #include "../CSocketProxy.h"
 
@@ -51,10 +52,9 @@ void testCUdpMulticastReceiver::tearDown()
 void testCUdpMulticastReceiver::testConstructor()
 {
    CUdpMulticastReceiver UdpMulticastReceiver;
-   const std::string emptyString;
 
    CPPUNIT_ASSERT_EQUAL(false, UdpMulticastReceiver.isOpen());
-   CPPUNIT_ASSERT_EQUAL(emptyString, UdpMulticastReceiver.getMulticastAddress());
+   CPPUNIT_ASSERT_EQUAL(in_addr_t(0), UdpMulticastReceiver.getMulticastIpAddress().s_addr);
    CPPUNIT_ASSERT_EQUAL(0, UdpMulticastReceiver.getMulticastPort());
    CPPUNIT_ASSERT_EQUAL(in_addr_t(0), UdpMulticastReceiver.getSourceIpAddress().s_addr);
    CPPUNIT_ASSERT_EQUAL(0, UdpMulticastReceiver.getSourcePortNumber());
@@ -78,9 +78,10 @@ void testCUdpMulticastReceiver::tstCopyConstructorDataDriven(const std::string t
 
    CPPUNIT_ASSERT_EQUAL_MESSAGE(testName, orig.isOpen(), copy.isOpen());
    CPPUNIT_ASSERT_EQUAL_MESSAGE(testName,
-                              orig.getSourceIpAddress().s_addr, copy.getSourceIpAddress().s_addr);
+                        orig.getSourceIpAddress().s_addr, copy.getSourceIpAddress().s_addr);
    CPPUNIT_ASSERT_EQUAL_MESSAGE(testName, orig.getSourcePortNumber(), copy.getSourcePortNumber());
-   CPPUNIT_ASSERT_EQUAL_MESSAGE(testName, orig.getMulticastAddress(), copy.getMulticastAddress());
+   CPPUNIT_ASSERT_EQUAL_MESSAGE(testName,
+                        orig.getMulticastIpAddress().s_addr, copy.getMulticastIpAddress().s_addr);
    CPPUNIT_ASSERT_EQUAL_MESSAGE(testName, orig.getMulticastPort(), copy.getMulticastPort());
 }
 
@@ -126,28 +127,30 @@ void testCUdpMulticastReceiver::testOpen()
 // namespace witch several socket test proxy's for the sake of testOpenThrow
 namespace
 {
-   class CTestProxySetsockoptError : public CSocketTestProxy
+
+class CTestProxySetsockoptError : public CSocketTestProxy
+{
+public:
+   virtual int setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen)
+      override
    {
-   public:
-      virtual int setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen)
-         override
+      Errno = ENOTSOCK; return -1;
+   }
+};
+
+class CTestProxySetsockoptError2 : public CSocketTestProxy
+{
+public:
+   virtual int setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen)
+      override
+   {
+      if(optname==IP_MULTICAST_ALL)
       {
          Errno = ENOTSOCK; return -1;
       }
-   };
-   class CTestProxySetsockoptError2 : public CSocketTestProxy
-   {
-   public:
-      virtual int setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen)
-         override
-      {
-         if(optname==IP_MULTICAST_ALL)
-         {
-            Errno = ENOTSOCK; return -1;
-         }
-         return CSocketTestProxy::setsockopt(fd, level, optname, optval, optlen);
-      }
-   };
+      return CSocketTestProxy::setsockopt(fd, level, optname, optval, optlen);
+   }
+};
 
 }
 
@@ -205,17 +208,19 @@ void testCUdpMulticastReceiver::tstOpenThrowDataDriven(const std::string testNam
 void testCUdpMulticastReceiver::testReceive()
 {
    char buffer[256];
+   char testMessage[] = "Hellooooo . . .";
    CUdpMulticastReceiver udpMulticastReceiver;
+//   CUdpMulticastSender   udpMulticastSender;
 
    CPPUNIT_ASSERT_NO_THROW(udpMulticastReceiver.open("225.1.1.1", 7000, "127.0.0.1"));
    CPPUNIT_ASSERT_NO_THROW(udpMulticastReceiver.setNonBlocking());
+//   CPPUNIT_ASSERT_NO_THROW(udpMulticastSender.open("225.1.1.1", 7000, "127.0.0.1"));
 
+   CPPUNIT_FAIL("NOT IMPLEMENTED");
    // to test receive we need a multicast sender. TODO
-   size_t result = udpMulticastReceiver.receive(buffer, sizeof(buffer));
-   if (true /*check result*/)
-   {
-      CPPUNIT_ASSERT(false);
-   }
+//   CPPUNIT_ASSERT_NO_THROW(udpMulticastSender.send(testMessage, sizeof(testMessage)));
+//   size_t result = udpMulticastReceiver.receive(buffer, sizeof(buffer));
+//   CPPUNIT_ASSERT_EQUAL(sizeof(testMessage), result);
 }
 
 void testCUdpMulticastReceiver::testReceiveThrow()

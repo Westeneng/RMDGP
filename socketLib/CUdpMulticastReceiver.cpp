@@ -26,6 +26,7 @@
 
 #include "CUdpMulticastReceiver.h"
 #include "CSocketProxy.h"        // includes sys/types.h and sys/socket.h
+#include "CInterfaces.h"
 #include <arpa/inet.h>
 #include <netinet/ip.h>
 #include <ifaddrs.h>
@@ -35,30 +36,32 @@
 #include <iostream>
 
 
-CUdpMulticastReceiver::CUdpMulticastReceiver() :
-                                 sourceIpAddress(new in_addr), sourcePortNumber(0), multicastPort(0)
+CUdpMulticastReceiver::CUdpMulticastReceiver() : sourceIpAddress(new in_addr), sourcePortNumber(0), 
+                                          multicastIpAddress(new in_addr), multicastPortNumber(0)
 {
    sourceIpAddress->s_addr = 0;
+   multicastIpAddress->s_addr = 0;
 }
 
 CUdpMulticastReceiver::CUdpMulticastReceiver(const CUdpMulticastReceiver& orig) :
-                                 CUdpSocket(orig.proxy), sourceIpAddress(new in_addr)
+               CUdpSocket(orig.proxy), sourceIpAddress(new in_addr), sourcePortNumber(0), 
+               multicastIpAddress(new in_addr), multicastPortNumber(0)
 {
    sourceIpAddress->s_addr = 0;
-   sourcePortNumber = orig.sourcePortNumber;
-   multicastPort = orig.multicastPort;
+   multicastIpAddress->s_addr = 0;
 
    if(orig.isOpen())
    {
-      struct in_addr address = {orig.sourceIpAddress->s_addr};
-      std::string sourceIP = inet_ntoa(address);
-      open(orig.multicastAddress, orig.multicastPort, sourceIP, orig.sourcePortNumber);
+      open(*orig.multicastIpAddress, orig.multicastPortNumber, 
+              *orig.sourceIpAddress, orig.sourcePortNumber);
    }
    else
    {
-      sourceIpAddress->s_addr = orig.sourceIpAddress->s_addr;
+      *multicastIpAddress = *orig.multicastIpAddress;
+      *sourceIpAddress = *orig.sourceIpAddress;
+      multicastPortNumber = orig.multicastPortNumber;
+      sourcePortNumber = orig.sourcePortNumber;
    }
-   multicastAddress = orig.multicastAddress;
 }
 
 CUdpMulticastReceiver::~CUdpMulticastReceiver()
@@ -68,12 +71,19 @@ CUdpMulticastReceiver::~CUdpMulticastReceiver()
 void CUdpMulticastReceiver::open(const std::string multicastAddress, int multicastPort,
          const std::string sourceAddress, int sourcePort)
 {
-   sourceIpAddress->s_addr = inet_addr( sourceAddress.c_str() );
-   sourcePortNumber = sourcePort;
-   this->multicastAddress = multicastAddress;
-   this->multicastPort = multicastPort;
+   const in_addr mcAddress = { inet_addr(multicastAddress.c_str()) };
+   const in_addr srcAddress = { inet_addr(sourceAddress.c_str()) };
 
-   in_addr interfaceAddress = retrieveInterfaceAdressFromAddress(*sourceIpAddress);
+   open(mcAddress, multicastPort, srcAddress, sourcePort);
+}
+
+void CUdpMulticastReceiver::open(const in_addr &multicastAddress, int multicastPort,
+               const in_addr &sourceAddress, int sourcePort)
+{
+   sourceIpAddress->s_addr = sourceAddress.s_addr;
+   sourcePortNumber = sourcePort;
+   multicastIpAddress->s_addr = multicastAddress.s_addr;
+   multicastPortNumber = multicastPort;
 
    // Create a datagram socket on which to receive.
    openUdpSocket();
@@ -87,17 +97,37 @@ void CUdpMulticastReceiver::open(const std::string multicastAddress, int multica
    }
 
    // Bind the socket to local interface and port.
-   bind(interfaceAddress, multicastPort);
+   // !!! be aware that for UDP multicast we MUST bind to INADDR_ANY.
+   // For instance, if we bind to loopback and also join at loopback we will not receive any
+   // multicast message.
+   const in_addr anyAddress = { INADDR_ANY };
+   bind(anyAddress, multicastPort);
 
-   // Join the multicast group
-   struct ip_mreq_source mcGroup = { 0 };
-   mcGroup.imr_multiaddr.s_addr = inet_addr( multicastAddress.c_str() );
-   mcGroup.imr_sourceaddr.s_addr = inet_addr( sourceAddress.c_str() );
-   mcGroup.imr_interface = interfaceAddress;
-
-   if(proxy->setsockopt(fd, IPPROTO_IP, IP_ADD_SOURCE_MEMBERSHIP, (char *)&mcGroup, sizeof(mcGroup)))
+   std::set<in_addr_t> interfaces;
+   // if source Ip is set to INADDR_ANY, then join to all IPv4 interfaces.
+   if(sourceIpAddress->s_addr == INADDR_ANY)
    {
-      closeAndThrowRuntimeException("Error joining multicast group");
+      interfaces = CInterfaces(proxy).getIpV4InterfaceAddresses();
+   }
+   else
+   {
+      in_addr interfaceAddress = 
+                        CInterfaces(proxy).retrieveInterfaceAdressFromAddress(*sourceIpAddress);
+      interfaces.insert(interfaceAddress.s_addr);
+   }
+
+   for(auto it = interfaces.begin(); it != interfaces.end(); ++it)
+   {
+      // Join the multicast group
+      struct ip_mreq_source mcGroup = { 0 };
+      mcGroup.imr_multiaddr.s_addr = multicastAddress.s_addr;
+      mcGroup.imr_sourceaddr.s_addr = sourceAddress.s_addr;
+      mcGroup.imr_interface.s_addr = *it;
+
+      if(proxy->setsockopt(fd, IPPROTO_IP, IP_ADD_SOURCE_MEMBERSHIP, (char *)&mcGroup, sizeof(mcGroup)))
+      {
+         closeAndThrowRuntimeException("Error joining multicast group");
+      }
    }
 
    // set receive multicast all to 0. But I am not sure this is correct. 
@@ -128,8 +158,9 @@ size_t CUdpMulticastReceiver::receive(void *buffer, size_t bufferSize)
             result = proxy->recvfrom(fd, buffer, bufferSize, 0, 
                                     (struct sockaddr *)&srcAddress, &adressLen);
          } while(result==-1 && proxy->getErrno() == EINTR);
-      } while(result!=-1 && (sourceIpAddress->s_addr != srcAddress.sin_addr.s_addr));
-   } while(result!=-1 && (sourcePortNumber>0) && (htons(sourcePortNumber) != srcAddress.sin_port));
+      } while((result!=-1) && sourceIpAddress->s_addr &&
+              (sourceIpAddress->s_addr != srcAddress.sin_addr.s_addr));
+   } while((result!=-1) && (sourcePortNumber>0) && (htons(sourcePortNumber) != srcAddress.sin_port));
 
    if(result == -1)
    {
@@ -164,12 +195,12 @@ in_addr CUdpMulticastReceiver::getSourceIpAddress() const
    return *sourceIpAddress;
 }
         
-std::string CUdpMulticastReceiver::getMulticastAddress() const
+in_addr CUdpMulticastReceiver::getMulticastIpAddress() const
 {
-   return multicastAddress;
+   return *multicastIpAddress;
 }
 
 int CUdpMulticastReceiver::getMulticastPort() const
 {
-   return multicastPort;
+   return multicastPortNumber;
 }

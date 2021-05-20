@@ -59,6 +59,8 @@ public:
     /// \throws std::runtime_error when not able to open and initialize the socket
     void open(const std::string multicastAddress, int multicastPort,
                 const std::string sourceAddress, int sourcePort=0);
+    void open(const in_addr& multicastAddress, int multicastPort,
+                const in_addr& sourceAddress, int sourcePort=0);
     
     /// \brief Receive a message from the multi cast address.
     ///        If a message from an other address is received in the buffer, a new receive from
@@ -75,14 +77,14 @@ public:
     /// \brief returns the source ip address
     in_addr getSourceIpAddress() const;
     /// \brief returns the multicast ip address
-    std::string getMulticastAddress() const;
+    in_addr getMulticastIpAddress() const;
     /// \brief returns the multicast port
     int getMulticastPort() const;
     
 private:
+    std::unique_ptr<in_addr> multicastIpAddress;
     std::unique_ptr<in_addr> sourceIpAddress;
-    std::string multicastAddress;
-    int multicastPort;
+    int multicastPortNumber;
     int sourcePortNumber;
 };
 
