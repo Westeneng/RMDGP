@@ -3,4 +3,5 @@ project (RMDGP)
 
 #
 add_subdirectory (socketLib)
-# add_subdirectory ()
+add_subdirectory (tools)
+
