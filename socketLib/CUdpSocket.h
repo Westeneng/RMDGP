@@ -95,12 +95,6 @@ public:
     /// \throws std::runtime_error when OS reports an error.
     size_t receiveFrom(void *buffer, size_t bufferSize, sockaddr_in *source);
 
-    /// \brief retrieves the interface address from a given address. Looks for an interface
-    ///        address with a matching subnet. If no matching address found INADDR_ANY will be
-    ///        returned
-    /// \throws std::runtime_error when OS reports an error.
-    in_addr retrieveInterfaceAdressFromAddress(const in_addr address);
-
     /// \brief helper function that closes the socket and assembles and throws a std::runtime_error
     ///        exception. The what() message is composed from the given matter and the available
     ///        errno. This is meant for error handling when OS reports an error.

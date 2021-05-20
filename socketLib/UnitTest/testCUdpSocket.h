@@ -37,8 +37,6 @@ class testCUdpSocket : public CPPUNIT_NS::TestFixture {
     CPPUNIT_TEST(testSetNonBlocking);
     CPPUNIT_TEST(testCloseUdpSocket);
     CPPUNIT_TEST(testOpenUdpSocket);
-    CPPUNIT_TEST(testRetrieveInterfaceAdressFromAddress);
-    CPPUNIT_TEST(testRetrieveInterfaceAdressFromAddressThrow);
     CPPUNIT_TEST(testCloseAndThrowRuntimeException);
     CPPUNIT_TEST(testBind);
     CPPUNIT_TEST(testBindException);
@@ -65,8 +63,6 @@ private:
     void testSetNonBlocking();
     void testCloseUdpSocket();
     void testOpenUdpSocket();
-    void testRetrieveInterfaceAdressFromAddress();
-    void testRetrieveInterfaceAdressFromAddressThrow();
     void testCloseAndThrowRuntimeException();
     void testBind();
     void tstBindDataDriven( const std::string testName,

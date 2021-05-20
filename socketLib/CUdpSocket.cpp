@@ -31,7 +31,6 @@
 #include <sstream>
 #include <string.h>
 #include <netinet/ip.h>
-#include <ifaddrs.h>
 
 
 CUdpSocket::CUdpSocket()
@@ -189,53 +188,6 @@ size_t CUdpSocket::receiveFrom(void *buffer, size_t bufferSize, sockaddr_in *sou
          std::ostringstream message;
          message << "Error receivefrom " << errorNbr << ": " << strerror(errorNbr);
          throw std::runtime_error(message.str());
-      }
-   }
-
-   return result;
-}
-
-in_addr CUdpSocket::retrieveInterfaceAdressFromAddress(const in_addr address)
-{
-   class CScopedIfaddr {   // frees ifaddr when object goes out of scope
-   public:
-      CScopedIfaddr(std::shared_ptr<CSocketProxy> Proxy) : proxy(Proxy), ifaddr(NULL) {}
-      ~CScopedIfaddr() { if(ifaddr!=NULL) proxy->freeifaddrs(ifaddr); }
-
-      struct ifaddrs *ifaddr;
-      std::shared_ptr<CSocketProxy> proxy;
-   } scoped(this->proxy);
-
-   // by default the address is set to INADDR_ANY.
-   in_addr result = { INADDR_ANY };
-
-   if (proxy->getifaddrs(&scoped.ifaddr) == -1)
-   {
-      int errorNbr = proxy->getErrno();
-      std::ostringstream message;
-
-      message << "Error getifaddrs " << errorNbr << ": " << strerror(errorNbr);
-      throw std::runtime_error(message.str());
-   }
-   for (struct ifaddrs *ifa = scoped.ifaddr; ifa != NULL; ifa = ifa->ifa_next)
-   {
-      if (ifa->ifa_addr == NULL)
-          continue;
-      switch(ifa->ifa_addr->sa_family)
-      {
-         case AF_INET:
-         {
-            in_addr_t ifAddress = ((struct sockaddr_in *)ifa->ifa_addr)->sin_addr.s_addr;
-            in_addr_t ifMask = ((struct sockaddr_in *)ifa->ifa_netmask)->sin_addr.s_addr;
-
-            if((ifAddress & ifMask) == (address.s_addr & ifMask))
-            {
-               result.s_addr = ifAddress;
-
-               return result;
-            }
-            break;
-         }
       }
    }
 

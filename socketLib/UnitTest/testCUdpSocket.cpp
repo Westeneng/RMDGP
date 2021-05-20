@@ -158,60 +158,6 @@ void testCUdpSocket::testSetNonBlocking()
    }
 }
 
-void testCUdpSocket::testRetrieveInterfaceAdressFromAddress()
-{
-   std::shared_ptr<CSocketTestProxy> testProxy(new CSocketTestProxy);
-   CUdpSocket udpSocket;
-   const in_addr localAddress = { inet_addr("127.0.0.1") };
-   const in_addr illegalAddress = { inet_addr("120.0.0.1") };
-   const in_addr anyAddress = { INADDR_ANY };
-
-   udpSocket.setSocketProxy(testProxy);
-
-   in_addr result = udpSocket.retrieveInterfaceAdressFromAddress(localAddress);
-   CPPUNIT_ASSERT_EQUAL(localAddress.s_addr, result.s_addr);
-   CPPUNIT_ASSERT_EQUAL(1, testProxy->getifaddrsCnt);
-   CPPUNIT_ASSERT_EQUAL(1, testProxy->freeifaddrsCnt);
-
-   result = udpSocket.retrieveInterfaceAdressFromAddress(illegalAddress);
-   CPPUNIT_ASSERT_EQUAL(anyAddress.s_addr, result.s_addr);
-   CPPUNIT_ASSERT_EQUAL(2, testProxy->getifaddrsCnt);
-   CPPUNIT_ASSERT_EQUAL(2, testProxy->freeifaddrsCnt);
-}
-
-void testCUdpSocket::testRetrieveInterfaceAdressFromAddressThrow()
-{
-   CUdpSocket udpSocket;
-   const in_addr localAddress = { inet_addr("127.0.0.1") };
-
-   // create a test proxy to simulate an error on call of getifaddrs
-   class CTestProxyGetifaddrsError : public CSocketTestProxy
-   {
-   public:
-      virtual int getifaddrs(struct ifaddrs **ifap) override
-      {
-         getifaddrsCnt++; Errno = ENOMEM;
-         return -1;
-      }
-   };
-
-   std::shared_ptr<CTestProxyGetifaddrsError> testProxy( new CTestProxyGetifaddrsError );
-   udpSocket.setSocketProxy(testProxy);
-
-   try
-   {
-      in_addr result = udpSocket.retrieveInterfaceAdressFromAddress(localAddress);
-      CPPUNIT_FAIL("Error, we expect retrieveInterfaceAdressFromAddress() to throw a runtime_error");
-   }
-   catch (std::runtime_error &re)
-   {
-      testProxy->verifyErrnoInMessage(re.what());
-      CPPUNIT_ASSERT_EQUAL(1, testProxy->getifaddrsCnt);
-      // verify that freeifaddrs is not called while getifaddrs failed
-      CPPUNIT_ASSERT_EQUAL(0, testProxy->freeifaddrsCnt);
-   }
-}
-
 void testCUdpSocket::testCloseAndThrowRuntimeException()
 {
    CUdpSocket udpSocket;
