@@ -14,8 +14,8 @@
 > However datagrams can be send multiple times over the network, for the sake that a receiver missed a message, at the application level only one datagram will be received.
 
 ## How
-- The slowest destination determines the speed of data transfer
-- By specifing a minimum transfer speed, it is ensured that a single destination with problems can't block the transfer.
-The corresponding node will be declared as disconnected and will not have any influence on the behaviour of the sender anymore.
+- The slowest receiver determines the speed of data transfer
+- By specifing a minimum transfer speed, it is ensured that a single receiver with problems can't block the transfer.
+The corresponding receiver will be declared as disconnected and will not have any influence on the behaviour of the sender anymore.
 - by UDP/IP multicast
 
