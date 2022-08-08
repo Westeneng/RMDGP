@@ -52,9 +52,9 @@ public:
     
     virtual ~CTime();
     
-    static const long nsecInSec = 1000000000;
-    static const long nsecInMillisec = 1000000;
-    static const long nsecInMicrosec = 1000;
+    static constexpr long nsecInSec = 1000000000;
+    static constexpr long nsecInMillisec = 1000000;
+    static constexpr long nsecInMicrosec = 1000;
 private:
 
 };
